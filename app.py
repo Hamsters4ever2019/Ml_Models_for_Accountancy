@@ -11,6 +11,7 @@ from model_utils import (prepare_supervised_data, prepare_unsupervised_data,
                          get_model_description)
 from supervised_models import train_random_forest, train_logistic_regression, train_xgboost
 from unsupervised_models import run_kmeans, run_dbscan, run_isolation_forest, visualize_clusters
+from model_comparison import run_model_comparison
 
 # Add this to your app.py - hides EVERYTHING except your content
 hide_everything = """
@@ -58,7 +59,12 @@ hide_everything = """
 """
 st.markdown(hide_everything, unsafe_allow_html=True)
 
-
+with st.sidebar:
+    # ... existing code ...
+    
+    st.divider()
+    # Add comparison mode
+    comparison_mode = st.checkbox("🔬 Model Comparison Mode", value=False)
 
 
 
@@ -99,6 +105,55 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+
+st.markdown("""
+    <style>
+        /* Comparison dashboard styling */
+        .comparison-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .best-model-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            margin: 10px 0;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .metric-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .model-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .badge-gold { background: #FFD700; color: #000; }
+        .badge-silver { background: #C0C0C0; color: #000; }
+        .badge-bronze { background: #CD7F32; color: #fff; }
+    </style>
+""", unsafe_allow_html=True)
+
+
 
 # Title
 st.markdown('<p class="main-header">📊 Accountancy ML Lab</p>', unsafe_allow_html=True)
@@ -178,6 +233,33 @@ with st.sidebar:
     run_button = st.button("🚀 Run Model", type="primary")
 
 # Main content
+
+if comparison_mode:
+    if df is not None and len(df) > 0:
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    padding: 15px;
+                    border-radius: 10px;
+                    color: white;
+                    margin-bottom: 20px;">
+            <h3 style="margin: 0;">🔬 Model Comparison Mode</h3>
+            <p style="margin: 5px 0 0 0;">Training and comparing multiple models simultaneously...</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        target_col = st.selectbox(
+            "Target Variable for Comparison",
+            ["is_fraud", "is_high_value"] if df is not None else []
+        )
+        
+        if target_col:
+            run_model_comparison(df, target_col)
+    else:
+        st.warning("⚠️ Please load or generate data first")
+else:
+    # Your existing single-model code
+    # ... (rest of your app) ...
+
 if df is not None and run_button:
     try:
         with st.spinner(f"Running {model_choice}..."):
