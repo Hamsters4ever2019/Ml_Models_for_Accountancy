@@ -12,6 +12,57 @@ from model_utils import (prepare_supervised_data, prepare_unsupervised_data,
 from supervised_models import train_random_forest, train_logistic_regression, train_xgboost
 from unsupervised_models import run_kmeans, run_dbscan, run_isolation_forest, visualize_clusters
 
+# Add this to your app.py - hides EVERYTHING except your content
+hide_everything = """
+    <style>
+        /* Hide header, footer, menu, and all toolbars */
+        header {
+            display: none !important;
+        }
+        footer {
+            display: none !important;
+        }
+        .stAppMenu {
+            display: none !important;
+        }
+        .stAppToolbar {
+            display: none !important;
+        }
+        .stDeployButton {
+            display: none !important;
+        }
+        .stAppDeployButton {
+            display: none !important;
+        }
+        #MainMenu {
+            visibility: hidden !important;
+        }
+        .main-header {
+            margin-top: -50px;
+        }
+        /* Hide the GitHub icon */
+        .e1f1d6gn2 {
+            display: none !important;
+        }
+        .css-1jc7ptx {
+            display: none !important;
+        }
+        /* Remove all Streamlit branding */
+        .st-emotion-cache-16txtl3 {
+            display: none !important;
+        }
+        .st-emotion-cache-1avcm0n {
+            display: none !important;
+        }
+    </style>
+"""
+st.markdown(hide_everything, unsafe_allow_html=True)
+
+
+
+
+
+
 # Page configuration
 st.set_page_config(
     page_title="Accountancy ML Lab",
