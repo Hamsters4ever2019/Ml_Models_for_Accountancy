@@ -72,6 +72,50 @@ def train_and_evaluate(model, model_name, X_train, X_test, y_train, y_test):
 # COMPARISON VISUALIZATIONS
 # ============================================
 
+# Add to model_comparison.py
+def create_model_recommendation_report(metrics_df):
+    """Create a beautiful recommendation report"""
+    
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #00b09b, #96c93d);
+                padding: 25px;
+                border-radius: 15px;
+                color: white;
+                margin: 20px 0;">
+        <h2>🎯 Executive Summary</h2>
+        <p>Based on the model comparison, here are key insights:</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Generate insights
+    best_model = metrics_df.loc[metrics_df['F1-Score'].idxmax()]
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("🏆 Best Model", best_model['Model'])
+    with col2:
+        st.metric("📈 F1-Score", f"{best_model['F1-Score']:.3f}")
+    with col3:
+        st.metric("⏱️ Training Time", f"{best_model['Training Time (s)']:.2f}s")
+    
+    # Recommendation text
+    st.info(f"""
+    **Recommendation:** Use **{best_model['Model']}** for production.
+    
+    **Why?** It achieves the highest F1-Score ({best_model['F1-Score']:.3f}) 
+    with a good balance of Precision ({best_model['Precision']:.3f}) and 
+    Recall ({best_model['Recall']:.3f}).
+    
+    **Next Steps:**
+    1. 🎯 Deploy {best_model['Model']} to production
+    2. 📊 Monitor performance weekly
+    3. 🔄 Retrain monthly with new data
+    4. 📈 Track drift and decay
+    """)
+
+
+
+
 def create_comparison_table(metrics_df):
     """Create a styled comparison table"""
     # Select relevant columns
