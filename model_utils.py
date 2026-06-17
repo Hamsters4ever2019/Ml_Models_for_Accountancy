@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 def prepare_supervised_data(df, target_col='is_fraud'):
-    """Prepare data for supervised learning"""
+    """Prepare data for supervised learning with automatic imbalance handling"""
     df_clean = df.copy()
     
     # Encode categorical variables
@@ -25,10 +25,20 @@ def prepare_supervised_data(df, target_col='is_fraud'):
     X = df_clean[feature_cols]
     y = df_clean[target_col]
     
-    # Split
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )
+    # Check class distribution
+    class_counts = y.value_counts()
+    
+    # Try stratified split first
+    try:
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42, stratify=y
+        )
+    except ValueError:
+        # Fallback to non-stratified split
+        st.warning("⚠️ Using random split (stratification failed due to class imbalance)")
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
     
     # Scale
     scaler = StandardScaler()
