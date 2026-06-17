@@ -72,50 +72,6 @@ def train_and_evaluate(model, model_name, X_train, X_test, y_train, y_test):
 # COMPARISON VISUALIZATIONS
 # ============================================
 
-# Add to model_comparison.py
-def create_model_recommendation_report(metrics_df):
-    """Create a beautiful recommendation report"""
-    
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #00b09b, #96c93d);
-                padding: 25px;
-                border-radius: 15px;
-                color: white;
-                margin: 20px 0;">
-        <h2>🎯 Executive Summary</h2>
-        <p>Based on the model comparison, here are key insights:</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Generate insights
-    best_model = metrics_df.loc[metrics_df['F1-Score'].idxmax()]
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("🏆 Best Model", best_model['Model'])
-    with col2:
-        st.metric("📈 F1-Score", f"{best_model['F1-Score']:.3f}")
-    with col3:
-        st.metric("⏱️ Training Time", f"{best_model['Training Time (s)']:.2f}s")
-    
-    # Recommendation text
-    st.info(f"""
-    **Recommendation:** Use **{best_model['Model']}** for production.
-    
-    **Why?** It achieves the highest F1-Score ({best_model['F1-Score']:.3f}) 
-    with a good balance of Precision ({best_model['Precision']:.3f}) and 
-    Recall ({best_model['Recall']:.3f}).
-    
-    **Next Steps:**
-    1. 🎯 Deploy {best_model['Model']} to production
-    2. 📊 Monitor performance weekly
-    3. 🔄 Retrain monthly with new data
-    4. 📈 Track drift and decay
-    """)
-
-
-
-
 def create_comparison_table(metrics_df):
     """Create a styled comparison table"""
     # Select relevant columns
@@ -192,50 +148,229 @@ def create_performance_bar_chart(metrics_df):
     
     return fig
 
+# ============================================
+# ✅ ENHANCED HEATMAP WITH CRYSTAL CLEAR VALUES
+# ============================================
+
 def create_heatmap(metrics_df):
-    """Create performance heatmap"""
+    """
+    Create a PERFORMANCE HEATMAP with crystal clear values
+    FIXED: Values are now large, bold, and perfectly readable
+    """
     metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'AUC-ROC']
     
     # Prepare data
     heatmap_data = metrics_df[metrics].values
     model_names = metrics_df['Model'].tolist()
     
+    # Create heatmap with enhanced styling
     fig = go.Figure(data=go.Heatmap(
         z=heatmap_data,
         x=metrics,
         y=model_names,
         colorscale='Viridis',
-        text=heatmap_data.round(3),
-        texttemplate='%{text}',
-        textfont={"size": 12},
+        text=heatmap_data.round(4),  # Round to 4 decimal places
+        texttemplate='%{text}',       # Show the actual value
+        textfont={
+            "size": 16,               # BIG FONT SIZE
+            "family": "Arial Black",  # Bold font
+            "color": "white"          # White text for contrast
+        },
+        hovertemplate=(
+            "<b>%{y}</b><br>" +
+            "%{x}: <b>%{z:.4f}</b><br>" +
+            "<extra></extra>"
+        ),
+        zmin=0,  # Set min value for color scale
+        zmax=1,  # Set max value for color scale
+        colorbar=dict(
+            title="Score",
+            tickfont=dict(size=12),
+            titlefont=dict(size=14)
+        )
     ))
     
     fig.update_layout(
-        title="🔍 Performance Heatmap",
-        height=400,
-        xaxis_title="Metrics",
-        yaxis_title="Model"
+        title=dict(
+            text="🔍 Performance Heatmap",
+            font=dict(size=20, family="Arial Black")
+        ),
+        height=500,
+        xaxis=dict(
+            title="Metrics",
+            titlefont=dict(size=14),
+            tickfont=dict(size=12)
+        ),
+        yaxis=dict(
+            title="Model",
+            titlefont=dict(size=14),
+            tickfont=dict(size=12)
+        ),
+        # Add margin for text
+        margin=dict(l=10, r=10, t=50, b=10),
+        # Make heatmap responsive
+        autosize=True
     )
     
     return fig
 
-def create_best_model_card(metrics_df):
-    """Create a card highlighting the best model"""
-    if 'F1-Score' not in metrics_df.columns:
-        return None
+# ============================================
+# 🆕 ENHANCED HEATMAP WITH ALTERNATIVE STYLES
+# ============================================
+
+def create_heatmap_alternative(metrics_df, style='dark'):
+    """
+    Alternative heatmap styles with perfect readability
     
-    best_idx = metrics_df['F1-Score'].idxmax()
-    best_model = metrics_df.loc[best_idx]
+    style: 'dark', 'light', 'colorblind'
+    """
+    metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'AUC-ROC']
+    heatmap_data = metrics_df[metrics].values
+    model_names = metrics_df['Model'].tolist()
     
-    # Create metrics display
-    metrics_display = {
-        'F1-Score': f"{best_model['F1-Score']:.3f}",
-        'Accuracy': f"{best_model['Accuracy']:.3f}",
-        'Precision': f"{best_model['Precision']:.3f}",
-        'Recall': f"{best_model['Recall']:.3f}",
-    }
+    # Color schemes based on style
+    if style == 'dark':
+        colorscale = 'Plasma'
+        text_color = 'white'
+        bg_color = '#1E1E1E'
+    elif style == 'light':
+        colorscale = 'Blues'
+        text_color = 'black'
+        bg_color = 'white'
+    elif style == 'colorblind':
+        colorscale = 'Cividis'
+        text_color = 'white'
+        bg_color = '#2D2D2D'
+    else:
+        colorscale = 'Viridis'
+        text_color = 'white'
+        bg_color = 'white'
     
-    return best_model['Model'], metrics_display
+    # Create heatmap
+    fig = go.Figure(data=go.Heatmap(
+        z=heatmap_data,
+        x=metrics,
+        y=model_names,
+        colorscale=colorscale,
+        text=[[f"{val:.4f}" for val in row] for row in heatmap_data],
+        texttemplate='%{text}',
+        textfont={
+            "size": 18,               # EVEN BIGGER!
+            "family": "Arial, sans-serif",
+            "color": text_color,
+            "weight": "bold"
+        },
+        hovertemplate=(
+            "<b>%{y}</b><br>" +
+            "%{x}: <b>%{z:.4f}</b><br>" +
+            "<extra></extra>"
+        ),
+        zmin=0,
+        zmax=1,
+        colorbar=dict(
+            title=dict(
+                text="Score",
+                side="right",
+                font=dict(size=14)
+            ),
+            tickfont=dict(size=12),
+            tickformat=".3f"
+        )
+    ))
+    
+    fig.update_layout(
+        title=dict(
+            text="🔍 Performance Heatmap",
+            font=dict(size=22, family="Arial Black"),
+            y=0.95
+        ),
+        height=500,
+        xaxis=dict(
+            title=dict(
+                text="Metrics",
+                font=dict(size=14)
+            ),
+            tickfont=dict(size=13),
+            tickangle=0  # Keep labels horizontal
+        ),
+        yaxis=dict(
+            title=dict(
+                text="Models",
+                font=dict(size=14)
+            ),
+            tickfont=dict(size=13)
+        ),
+        paper_bgcolor=bg_color,
+        plot_bgcolor=bg_color,
+        margin=dict(l=10, r=10, t=60, b=10)
+    )
+    
+    # Add annotations for even better readability
+    for i, model in enumerate(model_names):
+        for j, metric in enumerate(metrics):
+            fig.add_annotation(
+                x=metric,
+                y=model,
+                text=f"{heatmap_data[i][j]:.3f}",
+                showarrow=False,
+                font=dict(
+                    size=16,
+                    color=text_color,
+                    family="Arial, sans-serif",
+                    weight="bold"
+                ),
+                xref="x",
+                yref="y"
+            )
+    
+    return fig
+
+# ============================================
+# 🆕 COMPARISON SUMMARY CARD
+# ============================================
+
+def create_comparison_summary(metrics_df):
+    """Create a beautiful summary card with key insights"""
+    
+    # Find best model for each metric
+    best_accuracy = metrics_df.loc[metrics_df['Accuracy'].idxmax()]
+    best_precision = metrics_df.loc[metrics_df['Precision'].idxmax()]
+    best_recall = metrics_df.loc[metrics_df['Recall'].idxmax()]
+    best_f1 = metrics_df.loc[metrics_df['F1-Score'].idxmax()]
+    
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 25px;
+                border-radius: 15px;
+                color: white;
+                margin: 20px 0;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+        <h2 style="margin: 0 0 15px 0;">🏆 Model Comparison Summary</h2>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+    """, unsafe_allow_html=True)
+    
+    # Create 4 cards
+    cards = [
+        ("🎯 Best Accuracy", best_accuracy['Model'], f"{best_accuracy['Accuracy']:.3f}"),
+        ("⚡ Best Precision", best_precision['Model'], f"{best_precision['Precision']:.3f}"),
+        ("📊 Best Recall", best_recall['Model'], f"{best_recall['Recall']:.3f}"),
+        ("🏅 Best F1-Score", best_f1['Model'], f"{best_f1['F1-Score']:.3f}")
+    ]
+    
+    for title, model, score in cards:
+        st.markdown(f"""
+        <div style="background: rgba(255,255,255,0.15);
+                    padding: 15px;
+                    border-radius: 10px;
+                    backdrop-filter: blur(10px);
+                    text-align: center;">
+            <div style="font-size: 14px; opacity: 0.9;">{title}</div>
+            <div style="font-size: 18px; font-weight: bold; margin: 5px 0;">{model}</div>
+            <div style="font-size: 24px; font-weight: bold; color: #FFD700;">{score}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("</div></div>", unsafe_allow_html=True)
 
 def create_scatter_plot(metrics_df):
     """Create scatter plot of Precision vs Recall with size as F1"""
@@ -334,7 +469,7 @@ def create_detailed_comparison(metrics_df):
         best_model, metrics = create_best_model_card(metrics_df)
         if best_model:
             st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
                         padding: 20px;
                         border-radius: 10px;
                         color: white;
@@ -350,11 +485,36 @@ def create_detailed_comparison(metrics_df):
             </div>
             """, unsafe_allow_html=True)
         
-        # Heatmap
-        st.plotly_chart(create_heatmap(metrics_df), use_container_width=True)
+        # Heatmap with CRYSTAL CLEAR values
+        st.subheader("🔍 Performance Heatmap")
+        heatmap_fig = create_heatmap_alternative(metrics_df, style='dark')
+        st.plotly_chart(heatmap_fig, use_container_width=True)
         
         # Scatter plot
+        st.subheader("🎯 Precision-Recall Trade-off")
         st.plotly_chart(create_scatter_plot(metrics_df), use_container_width=True)
+
+# ============================================
+# BEST MODEL CARD
+# ============================================
+
+def create_best_model_card(metrics_df):
+    """Create a card highlighting the best model"""
+    if 'F1-Score' not in metrics_df.columns:
+        return None
+    
+    best_idx = metrics_df['F1-Score'].idxmax()
+    best_model = metrics_df.loc[best_idx]
+    
+    # Create metrics display
+    metrics_display = {
+        'F1-Score': f"{best_model['F1-Score']:.3f}",
+        'Accuracy': f"{best_model['Accuracy']:.3f}",
+        'Precision': f"{best_model['Precision']:.3f}",
+        'Recall': f"{best_model['Recall']:.3f}",
+    }
+    
+    return best_model['Model'], metrics_display
 
 # ============================================
 # COMPARISON EXPLANATION
@@ -515,6 +675,9 @@ def run_model_comparison(df, target_col='is_fraud'):
     with col3:
         best_model = metrics_df.loc[metrics_df['F1-Score'].idxmax(), 'Model']
         st.metric("🥇 Best Model", best_model)
+    
+    # ✨ NEW: Comparison Summary Card
+    create_comparison_summary(metrics_df)
     
     # Detailed comparison table
     st.subheader("📋 Performance Comparison Table")
